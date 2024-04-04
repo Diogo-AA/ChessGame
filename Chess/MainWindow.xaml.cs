@@ -56,7 +56,7 @@ namespace Chess
             var col = Grid.GetColumn(border);
             var piece = game.board[row][col];
 
-            if (piece is null)
+            if (piece is null || (piece is not Move && piece.Color != game.Turn))
                 return;
 
             if (game.PieceSelected == piece)
@@ -150,6 +150,7 @@ namespace Chess
 
             Board.MovePiece(game.board, game.PieceSelected.Row, game.PieceSelected.Col, row, col);
             game.PieceSelected = null;
+            game.Turn = game.Turn == Colors.White ? Colors.Black : Colors.White;
         }
 
         private void MarkAllPossibleMoves()

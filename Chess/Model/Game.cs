@@ -7,6 +7,7 @@ namespace Chess.Model
         public IPiece?[][] board;
         public List<int> possibleMoves = new List<int>();
         public IPiece? PieceSelected { get; set; } = null;
+        public Colors Turn { get; set; } = Colors.White;
 
         public Game()
         {
