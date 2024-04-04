@@ -9,7 +9,7 @@ namespace Chess.Model
         public Pieces Type { get; set; } = IPiece.Pieces.Pawn;
         public Colors Color { get; set; }
         public bool IsBeingAttacked { get; set; }
-        public bool FirstMove { get; set; }
+        public bool FirstMove { get; set; } = true;
         public int Row { get; set; }
         public int Col { get; set; }
 
@@ -20,7 +20,7 @@ namespace Chess.Model
             Col = col;
         }
 
-        //TODO: First pawn move, promotion and en passant
+        //TODO: promotion and en passant
         public List<int[]> GetAllMoves(IPiece?[][] board)
         {
             var moves = new List<int[]>();
@@ -30,7 +30,13 @@ namespace Chess.Model
                 return moves;
 
             if (Board.IsSquareEmpty(board, newRow, Col))
+            {
                 moves.Add([newRow, Col]);
+
+                var newRowFirstMove = Color == Colors.White ? newRow + 1 : newRow - 1;
+                if (FirstMove && Board.IsSquareEmpty(board, newRowFirstMove, Col))
+                    moves.Add([newRowFirstMove, Col]);
+            }
 
             if (Col < Board.COLS_LENGTH - 1 && Board.IsSquareEnemy(board, newRow, Col + 1, Color))
                 moves.Add([newRow, Col + 1]);
@@ -45,6 +51,7 @@ namespace Chess.Model
         {
             Row = newRow;
             Col = newCol;
+            FirstMove = false;
         }
     }
 }
