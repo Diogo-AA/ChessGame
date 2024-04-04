@@ -56,7 +56,7 @@ namespace Chess
             var col = Grid.GetColumn(border);
             var piece = game.board[row][col];
 
-            if (piece is null || (piece is not Move && piece.Color != game.Turn))
+            if (piece is null || ((piece is not Move && !piece.IsBeingAttacked) && piece.Color != game.Turn))
                 return;
 
             if (game.PieceSelected == piece)
