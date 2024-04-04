@@ -13,7 +13,7 @@ namespace Chess.Model
         {
             board = new IPiece[Board.ROWS_LENGTH][];
 
-            /*board[0] = [
+            board[0] = [
                 new Rook(Colors.White, 0, 0),
                 new Knight(Colors.White, 0, 1),
                 new Bishop(Colors.White, 0, 2),
@@ -22,17 +22,6 @@ namespace Chess.Model
                 new Bishop(Colors.White, 0, 5),
                 new Knight(Colors.White, 0, 6),
                 new Rook(Colors.White, 0, 7)
-            ];*/
-
-            board[0] = [
-                new Pawn(Colors.White, 0, 0),
-                new Pawn(Colors.White, 0, 1),
-                new Pawn(Colors.White, 0, 2),
-                new Pawn(Colors.White, 0, 3),
-                new Pawn(Colors.White, 0, 4),
-                new Pawn(Colors.White, 0, 5),
-                new Pawn(Colors.White, 0, 6),
-                new Pawn(Colors.White, 0, 7)
             ];
 
             board[1] = [
@@ -62,7 +51,7 @@ namespace Chess.Model
                 new Pawn(Colors.Black, 6, 7)
             ];
 
-            /*board[7] = [
+            board[7] = [
                 new Rook(Colors.Black, 7, 0),
                 new Knight(Colors.Black, 7, 1),
                 new Bishop(Colors.Black, 7, 2),
@@ -71,20 +60,7 @@ namespace Chess.Model
                 new Bishop(Colors.Black, 7, 5),
                 new Knight(Colors.Black, 7, 6),
                 new Rook(Colors.Black, 7, 7)
-            ];*/
-
-            board[7] = [
-                new Pawn(Colors.Black, 7, 0),
-                new Pawn(Colors.Black, 7, 1),
-                new Pawn(Colors.Black, 7, 2),
-                new Pawn(Colors.Black, 7, 3),
-                new Pawn(Colors.Black, 7, 4),
-                new Pawn(Colors.Black, 7, 5),
-                new Pawn(Colors.Black, 7, 6),
-                new Pawn(Colors.Black, 7, 7)
             ];
         }
-
-
     }
 }
