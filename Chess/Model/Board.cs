@@ -23,5 +23,15 @@ namespace Chess.Model
         {
             return board[row][col] is not null && board[row][col]?.Color != color && board[row][col]?.Type != Pieces.None;
         }
+
+        public static bool IsSquareAlly(IPiece?[][] board, int row, int col, Colors? color)
+        {
+            return board[row][col] is not null && board[row][col]?.Color == color && board[row][col]?.Type != Pieces.None;
+        }
+
+        public static bool IsPositionOnTheBoardLimits(IPiece?[][] board, int row, int col)
+        {
+            return row >= 0 && row < Board.ROWS_LENGTH && col >= 0 && col < Board.COLS_LENGTH;
+        }
     }
 }
