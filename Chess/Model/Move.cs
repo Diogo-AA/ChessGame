@@ -50,7 +50,7 @@ namespace Chess.Model
             throw new NotImplementedException();
         }
 
-        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<King.Attacker> attackers, int kingRow, int kingCol)
+        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<King.Attacker> attackers)
         {
             throw new NotImplementedException();
         }

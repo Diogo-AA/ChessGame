@@ -1,4 +1,5 @@
-﻿using static Chess.Model.IPiece;
+﻿using System.Windows.Input;
+using static Chess.Model.IPiece;
 
 namespace Chess.Model
 {
@@ -27,23 +28,26 @@ namespace Chess.Model
             bool leftDiagonalPossible = true;
 
             // Check for the diagonals bellow the bishop
-            for (int i = Row + 1; i < Board.ROWS_LENGTH; i++)
+            for (int newRow = Row + 1; newRow < Board.ROWS_LENGTH; newRow++)
             {
-                if (Board.IsPositionOnTheBoardLimits(board, i, Col + (i - Row)) && rightDiagonalPossible)
-                {
-                    if (!Board.IsSquareAlly(board, i, Col + (i - Row), Color))
-                        moves.Add([i, Col + (i - Row)]);
+                int newCol = Col + (newRow - Row);
 
-                    if (!Board.IsSquareEmpty(board, i, Col + (i - Row)))
+                if (Board.IsPositionOnTheBoardLimits(board, newRow, newCol) && rightDiagonalPossible)
+                {
+                    if (!Board.IsSquareAlly(board, newRow, newCol, Color) && !Game.IsPiecePinned(board, [Row, Col], [newRow, newCol]))
+                        moves.Add([newRow, newCol]);
+
+                    if (!Board.IsSquareEmpty(board, newRow, newCol))
                         rightDiagonalPossible = false;
                 }
 
-                if (Board.IsPositionOnTheBoardLimits(board, i, Col - (i - Row)) && leftDiagonalPossible)
+                newCol = Col - (newRow - Row);
+                if (Board.IsPositionOnTheBoardLimits(board, newRow, newCol) && leftDiagonalPossible)
                 {
-                    if (!Board.IsSquareAlly(board, i, Col - (i - Row), Color))
-                        moves.Add([i, Col - (i - Row)]);
+                    if (!Board.IsSquareAlly(board, newRow, newCol, Color))
+                        moves.Add([newRow, newCol]);
 
-                    if (!Board.IsSquareEmpty(board, i, Col - (i - Row)))
+                    if (!Board.IsSquareEmpty(board, newRow, newCol))
                         leftDiagonalPossible = false;
                 }
             }
@@ -52,24 +56,109 @@ namespace Chess.Model
             leftDiagonalPossible = true;
 
             // Check for the diagonals above the bishop
-            for (int i = Row - 1; i >= 0; i--)
+            for (int newRow = Row - 1; newRow >= 0; newRow--)
             {
-                if (Board.IsPositionOnTheBoardLimits(board, i, Col + (Row - i)) && rightDiagonalPossible)
+                if (Board.IsPositionOnTheBoardLimits(board, newRow, Col + (Row - newRow)) && rightDiagonalPossible)
                 {
-                    if (!Board.IsSquareAlly(board, i, Col + (Row - i), Color))
-                        moves.Add([i, Col + (Row - i)]);
+                    if (!Board.IsSquareAlly(board, newRow, Col + (Row - newRow), Color))
+                        moves.Add([newRow, Col + (Row - newRow)]);
 
-                    if (!Board.IsSquareEmpty(board, i, Col + (Row - i)))
+                    if (!Board.IsSquareEmpty(board, newRow, Col + (Row - newRow)))
                         rightDiagonalPossible = false;
                 }
 
-                if (Board.IsPositionOnTheBoardLimits(board, i, Col - (Row - i)) && leftDiagonalPossible)
+                if (Board.IsPositionOnTheBoardLimits(board, newRow, Col - (Row - newRow)) && leftDiagonalPossible)
                 {
-                    if (!Board.IsSquareAlly(board, i, Col - (Row - i), Color))
-                        moves.Add([i, Col - (Row - i)]);
+                    if (!Board.IsSquareAlly(board, newRow, Col - (Row - newRow), Color))
+                        moves.Add([newRow, Col - (Row - newRow)]);
 
-                    if (!Board.IsSquareEmpty(board, i, Col - (Row - i)))
+                    if (!Board.IsSquareEmpty(board, newRow, Col - (Row - newRow)))
                         leftDiagonalPossible = false;
+                }
+            }
+
+            return moves;
+        }
+
+        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<King.Attacker> attackers)
+        {
+            var moves = new List<int[]>();
+
+            if (attackers.Count == 2)
+                return moves;
+
+            foreach (var pos in attackers[0].SquaresToBeBlocked)
+            {
+                bool rightDiagonalPossible = true;
+                bool leftDiagonalPossible = true;
+
+                // Check for the diagonals bellow the queen
+                for (int newRow = Row + 1; newRow < Board.ROWS_LENGTH; newRow++)
+                {
+                    int newCol = Col + (newRow - Row);
+                    if (Board.IsPositionOnTheBoardLimits(board, newRow, Col + (newRow - Row)) && rightDiagonalPossible)
+                    {
+                        if (Board.IsSquareAlly(board, newRow, Col + (newRow - Row), Color))
+                            break;
+
+                        if (pos[0] == newRow && pos[1] == Col + (newRow - Row) && !Game.IsPiecePinned(board, [Row, Col], [newRow, newCol]))
+                            moves.Add([newRow, Col + (newRow - Row)]);
+
+                        if (!Board.IsSquareEmpty(board, newRow, Col + (newRow - Row)))
+                            rightDiagonalPossible = false;
+                    }
+                }
+
+                for (int newRow = Row + 1; newRow < Board.ROWS_LENGTH; newRow++)
+                {
+                    int newCol = Col - (newRow - Row);
+                    if (Board.IsPositionOnTheBoardLimits(board, newRow, Col - (newRow - Row)) && leftDiagonalPossible)
+                    {
+                        if (Board.IsSquareAlly(board, newRow, Col - (newRow - Row), Color))
+                            break;
+
+                        if (pos[0] == newRow && pos[1] == Col - (newRow - Row) && !Game.IsPiecePinned(board, [Row, Col], [newRow, newCol]))
+                            moves.Add([newRow, Col - (newRow - Row)]);
+
+                        if (!Board.IsSquareEmpty(board, newRow, Col - (newRow - Row)))
+                            leftDiagonalPossible = false;
+                    }
+                }
+
+                rightDiagonalPossible = true;
+                leftDiagonalPossible = true;
+
+                // Check for the diagonals above the queen
+                for (int newRow = Row - 1; newRow >= 0; newRow--)
+                {
+                    int newCol = Col + (Row - newRow);
+                    if (Board.IsPositionOnTheBoardLimits(board, newRow, Col + (Row - newRow)) && rightDiagonalPossible)
+                    {
+                        if (Board.IsSquareAlly(board, newRow, Col + (Row - newRow), Color))
+                            break;
+
+                        if (pos[0] == newRow && pos[1] == Col + (Row - newRow) && !Game.IsPiecePinned(board, [Row, Col], [newRow, newCol]))
+                            moves.Add([newRow, Col + (Row - newRow)]);
+
+                        if (!Board.IsSquareEmpty(board, newRow, Col + (Row - newRow)))
+                            rightDiagonalPossible = false;
+                    }
+                }
+
+                for (int newRow = Row - 1; newRow >= 0; newRow--)
+                {
+                    int newCol = Col - (Row - newRow);
+                    if (Board.IsPositionOnTheBoardLimits(board, newRow, Col - (Row - newRow)) && leftDiagonalPossible)
+                    {
+                        if (Board.IsSquareAlly(board, newRow, Col - (Row - newRow), Color))
+                            break;
+
+                        if (pos[0] == newRow && pos[1] == Col - (Row - newRow) && !Game.IsPiecePinned(board, [Row, Col], [newRow, newCol]))
+                            moves.Add([newRow, Col - (Row - newRow)]);
+
+                        if (!Board.IsSquareEmpty(board, newRow, Col - (Row - newRow)))
+                            leftDiagonalPossible = false;
+                    }
                 }
             }
 
@@ -85,11 +174,6 @@ namespace Chess.Model
         public override string ToString()
         {
             return $"{Color}-{Notation}-{Row}-{Col}";
-        }
-
-        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<King.Attacker> attackers, int kingRow, int kingCol)
-        {
-            throw new NotImplementedException();
         }
     }
 }

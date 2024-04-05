@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Windows.Input;
 using static Chess.Model.IPiece;
 using static Chess.Model.King;
@@ -10,8 +11,8 @@ namespace Chess.Model
         public IPiece?[][] board;
         public HashSet<string> WhitePiecesPinned = [];
         public HashSet<string> BlackPiecesPinned = [];
-        public King WhiteKing;
-        public King BlackKing;
+        public static King WhiteKing;
+        public static King BlackKing;
         public IPiece? PieceSelected { get; set; } = null;
         public Colors Turn { get; set; } = Colors.White;
 
@@ -84,53 +85,98 @@ namespace Chess.Model
 
         public void CheckKings()
         {
-            CheckKing(WhiteKing);
-            CheckKing(BlackKing);
+            CheckKingAttackers(WhiteKing);
+            CheckKingAttackers(BlackKing);
         }
 
-        private void CheckKing(King king)
+        private void CheckKingAttackers(King king)
         {
             king.IsBeingAttacked = false;
             king.Attackers.Clear();
 
-            CheckAttackersCol(board, king);
-            CheckAttackersRow(board, king);
-            CheckAttackersDiagonal(board, king);
-            CheckKnightsAttakcers(board, king);
+            GetAttackersCol(board, king).ForEach(p => king.Attackers.Add(p));
+            GetAttackersRow(board, king).ForEach(p => king.Attackers.Add(p));
+            GetAttackersDiagonal(board, king).ForEach(p => king.Attackers.Add(p));
+            GetKnightsAttakcers(board, king).ForEach(p => king.Attackers.Add(p));
+
+            if (king.Attackers.Count > 0)
+            {
+                king.IsBeingAttacked = true;
+            }
         }
 
-        private void CheckAttackersCol(IPiece?[][] board, King king)
+        public static bool IsSquareAttacked(IPiece?[][] board, int row, int col, Colors color)
         {
+            if (GetAttackersCol(board, new Move(color, Pieces.King, row, col)).Count > 0)
+                return true;
+            if (GetAttackersRow(board, new Move(color, Pieces.King, row, col)).Count > 0)
+                return true;
+            if (GetAttackersDiagonal(board, new Move(color, Pieces.King, row, col)).Count > 0)
+                return true;
+            if (GetKnightsAttakcers(board, new Move(color, Pieces.King, row, col)).Count > 0)
+                return true;
+            return false;
+        }
+
+        public static bool IsPiecePinned(IPiece?[][] board, int[] oldPos, int[] newPos)
+        {
+            var piece = board[oldPos[0]][oldPos[1]];
+
+            if (piece == null)
+            {
+                return false;
+            }
+
+            IPiece?[][] boardCopy = new IPiece[Board.ROWS_LENGTH][];
+            for (int i = 0; i < Board.ROWS_LENGTH; i++)
+            {
+                boardCopy[i] = new IPiece[Board.COLS_LENGTH];
+                for (int j = 0; j < Board.COLS_LENGTH; j++)
+                {
+                    boardCopy[i][j] = board[i][j];
+                }
+            }
+
+            boardCopy[oldPos[0]][oldPos[1]] = null;
+            boardCopy[newPos[0]][newPos[1]] = piece;
+
+            var king = piece.Color == Colors.White ? WhiteKing : BlackKing;
+
+            return IsSquareAttacked(boardCopy, king.Row, king.Col, piece.Color);
+        }
+
+        private static List<Attacker> GetAttackersCol(IPiece?[][] board, IPiece piece)
+        {
+            var attackers = new List<Attacker>();
             var squaresToBeBlocked = new List<int[]>();
             bool pieceFound;
             int numAllies, i;
 
             numAllies = 0;
-            i = king.Col + 1;
+            i = piece.Col + 1;
             pieceFound = false;
             while (i < Board.COLS_LENGTH && numAllies < 2 && !pieceFound)
             {
-                squaresToBeBlocked.Add([king.Row, i]);
+                squaresToBeBlocked.Add([piece.Row, i]);
 
-                if (Board.IsSquareAlly(board, king.Row, i, king.Color))
+                if (Board.IsSquareAlly(board, piece.Row, i, piece.Color))
                 {
                     numAllies++;
                 }
-                else if (Board.IsSquareEnemy(board, king.Row, i, king.Color))
+                else if (Board.IsSquareEnemy(board, piece.Row, i, piece.Color))
                 {
-                    switch (board[king.Row][i].Type)
+                    switch (board[piece.Row][i].Type)
                     {
                         case Pieces.Rook:
                         case Pieces.Queen:
                             pieceFound = true;
                             if (numAllies == 0)
                             {
-                                king.IsBeingAttacked = true;
-                                king.Attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[king.Row][i].Type));
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[piece.Row][i].Type));
                             }
                             else if (numAllies == 1)
                             {
-                                //piecesPinned.Add($"{king.Row},{i}");
+                                //piecesPinned.Add($"{piece.Row},{i}");
                             }
                             break;
                     }
@@ -140,32 +186,31 @@ namespace Chess.Model
             }
 
             numAllies = 0;
-            i = king.Col - 1;
+            i = piece.Col - 1;
             pieceFound = false;
             squaresToBeBlocked.Clear();
             while (i >= 0 && numAllies < 2 && !pieceFound)
             {
-                squaresToBeBlocked.Add([king.Row, i]);
+                squaresToBeBlocked.Add([piece.Row, i]);
 
-                if (Board.IsSquareAlly(board, king.Row, i, king.Color))
+                if (Board.IsSquareAlly(board, piece.Row, i, piece.Color))
                 {
                     numAllies++;
                 }
-                else if (Board.IsSquareEnemy(board, king.Row, i, king.Color))
+                else if (Board.IsSquareEnemy(board, piece.Row, i, piece.Color))
                 {
-                    switch (board[king.Row][i].Type)
+                    switch (board[piece.Row][i].Type)
                     {
                         case Pieces.Rook:
                         case Pieces.Queen:
                             pieceFound = true;
                             if (numAllies == 0)
                             {
-                                king.IsBeingAttacked = true;
-                                king.Attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[king.Row][i].Type));
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[piece.Row][i].Type));
                             }
                             else if (numAllies == 1)
                             {
-                                //piecesPinned.Add($"{king.Row},{i}");
+                                //piecesPinned.Add($"{piece.Row},{i}");
                             }
                             break;
                     }
@@ -173,40 +218,42 @@ namespace Chess.Model
 
                 i--;
             }
+
+            return attackers;
         }
 
-        private void CheckAttackersRow(IPiece?[][] board, King king)
+        private static List<Attacker> GetAttackersRow(IPiece?[][] board, IPiece piece)
         {
+            var attackers = new List<Attacker>();
             var squaresToBeBlocked = new List<int[]>();
             bool pieceFound;
             int numAllies, i;
 
             numAllies = 0;
-            i = king.Row + 1;
+            i = piece.Row + 1;
             pieceFound = false;
             while (i < Board.ROWS_LENGTH && numAllies < 2 && !pieceFound)
             {
-                squaresToBeBlocked.Add([i, king.Col]);
+                squaresToBeBlocked.Add([i, piece.Col]);
 
-                if (Board.IsSquareAlly(board, i, king.Col, king.Color))
+                if (Board.IsSquareAlly(board, i, piece.Col, piece.Color))
                 {
                     numAllies++;
                 }
-                else if (Board.IsSquareEnemy(board, i, king.Col, king.Color))
+                else if (Board.IsSquareEnemy(board, i, piece.Col, piece.Color))
                 {
-                    switch (board[i][king.Col].Type)
+                    switch (board[i][piece.Col].Type)
                     {
                         case Pieces.Rook:
                         case Pieces.Queen:
                             pieceFound = true;
                             if (numAllies == 0)
                             {
-                                king.IsBeingAttacked = true;
-                                king.Attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][king.Col].Type));
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][piece.Col].Type));
                             }
                             else if (numAllies == 1)
                             {
-                                //piecesPinned.Add($"{i},{king.Col}");
+                                //piecesPinned.Add($"{i},{piece.Col}");
                             }
                             break;
                     }
@@ -216,32 +263,31 @@ namespace Chess.Model
             }
 
             numAllies = 0;
-            i = king.Row - 1;
+            i = piece.Row - 1;
             pieceFound = false;
             squaresToBeBlocked.Clear();
             while (i >= 0 && numAllies < 2 && !pieceFound)
             {
-                squaresToBeBlocked.Add([i, king.Col]);
+                squaresToBeBlocked.Add([i, piece.Col]);
 
-                if (Board.IsSquareAlly(board, i, king.Col, king.Color))
+                if (Board.IsSquareAlly(board, i, piece.Col, piece.Color))
                 {
                     numAllies++;
                 }
-                else if (Board.IsSquareEnemy(board, i, king.Col, king.Color))
+                else if (Board.IsSquareEnemy(board, i, piece.Col, piece.Color))
                 {
-                    switch (board[i][king.Col].Type)
+                    switch (board[i][piece.Col].Type)
                     {
                         case Pieces.Rook:
                         case Pieces.Queen:
                             pieceFound = true;
                             if (numAllies == 0)
                             {
-                                king.IsBeingAttacked = true;
-                                king.Attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][king.Col].Type));
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][piece.Col].Type));
                             }
                             else if (numAllies == 1)
                             {
-                                //piecesPinned.Add($"{i},{king.Col}");
+                                //piecesPinned.Add($"{i},{piece.Col}");
                             }
                             break;
                     }
@@ -249,29 +295,32 @@ namespace Chess.Model
 
                 i--;
             }
+
+            return attackers;
         }
 
-        private void CheckAttackersDiagonal(IPiece?[][] board, King king)
+        private static List<Attacker> GetAttackersDiagonal(IPiece?[][] board, IPiece piece)
         {
+            var attackers = new List<Attacker>();
             var squaresToBeBlocked = new List<int[]>();
             bool pieceFound = false;
             int numAllies = 0, i;
             
             // Check right down diagonal
-            i = king.Row + 1;
+            i = piece.Row + 1;
             while (i < Board.ROWS_LENGTH && numAllies < 2 && !pieceFound)
             {
-                int rightCol = king.Col + (i - king.Row);
+                int rightCol = piece.Col + (i - piece.Row);
 
                 if (!Board.IsPositionOnTheBoardLimits(board, i, rightCol))
                     break;
 
                 squaresToBeBlocked.Add([i, rightCol]);
-                if (Board.IsSquareAlly(board, i, rightCol, king.Color))
+                if (Board.IsSquareAlly(board, i, rightCol, piece.Color))
                 {
                     numAllies++;
                 }
-                else if (Board.IsSquareEnemy(board, i, rightCol, king.Color))
+                else if (Board.IsSquareEnemy(board, i, rightCol, piece.Color))
                 {
                     pieceFound = true;
 
@@ -281,8 +330,7 @@ namespace Chess.Model
                         case Pieces.Queen:
                             if (numAllies == 0)
                             {
-                                king.IsBeingAttacked = true;
-                                king.Attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][rightCol].Type));
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][rightCol].Type));
                             }
                             else if (numAllies == 1)
                             {
@@ -299,20 +347,20 @@ namespace Chess.Model
             squaresToBeBlocked.Clear();
             pieceFound = false;
             numAllies = 0;
-            i = king.Row + 1;
+            i = piece.Row + 1;
             while (i < Board.ROWS_LENGTH && numAllies < 2 && !pieceFound)
             {
-                int leftCol = king.Col - (i - king.Row);
+                int leftCol = piece.Col - (i - piece.Row);
 
                 if (!Board.IsPositionOnTheBoardLimits(board, i, leftCol))
                     break;
 
                 squaresToBeBlocked.Add([i, leftCol]);
-                if (Board.IsSquareAlly(board, i, leftCol, king.Color))
+                if (Board.IsSquareAlly(board, i, leftCol, piece.Color))
                 {
                     numAllies++;
                 }
-                else if (Board.IsSquareEnemy(board, i, leftCol, king.Color))
+                else if (Board.IsSquareEnemy(board, i, leftCol, piece.Color))
                 {
                     pieceFound = true;
 
@@ -322,8 +370,7 @@ namespace Chess.Model
                         case Pieces.Queen:
                             if (numAllies == 0)
                             {
-                                king.IsBeingAttacked = true;
-                                king.Attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][leftCol].Type));
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][leftCol].Type));
                             }
                             else if (numAllies == 1)
                             {
@@ -340,20 +387,20 @@ namespace Chess.Model
             squaresToBeBlocked.Clear();
             pieceFound = false;
             numAllies = 0;
-            i = king.Row - 1;
+            i = piece.Row - 1;
             while (i >= 0 && numAllies < 2 && !pieceFound)
             {
-                int rightCol = king.Col + (king.Row - i);
+                int rightCol = piece.Col + (piece.Row - i);
 
                 if (!Board.IsPositionOnTheBoardLimits(board, i, rightCol))
                     break;
 
                 squaresToBeBlocked.Add([i, rightCol]);
-                if (Board.IsSquareAlly(board, i, rightCol, king.Color))
+                if (Board.IsSquareAlly(board, i, rightCol, piece.Color))
                 {
                     numAllies++;
                 }
-                else if (Board.IsSquareEnemy(board, i, rightCol, king.Color))
+                else if (Board.IsSquareEnemy(board, i, rightCol, piece.Color))
                 {
                     pieceFound = true;
 
@@ -363,8 +410,7 @@ namespace Chess.Model
                         case Pieces.Queen:
                             if (numAllies == 0)
                             {
-                                king.IsBeingAttacked = true;
-                                king.Attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][rightCol].Type));
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][rightCol].Type));
                             }
                             else if (numAllies == 1)
                             {
@@ -381,20 +427,20 @@ namespace Chess.Model
             squaresToBeBlocked.Clear();
             pieceFound = false;
             numAllies = 0;
-            i = king.Row - 1;
+            i = piece.Row - 1;
             while (i >= 0 && numAllies < 2 && !pieceFound)
             {
-                int leftCol = king.Col - (king.Row - i);
+                int leftCol = piece.Col - (piece.Row - i);
 
                 if (!Board.IsPositionOnTheBoardLimits(board, i, leftCol))
                     break;
 
                 squaresToBeBlocked.Add([i, leftCol]);
-                if (Board.IsSquareAlly(board, i, leftCol, king.Color))
+                if (Board.IsSquareAlly(board, i, leftCol, piece.Color))
                 {
                     numAllies++;
                 }
-                else if (Board.IsSquareEnemy(board, i, leftCol, king.Color))
+                else if (Board.IsSquareEnemy(board, i, leftCol, piece.Color))
                 {
                     pieceFound = true;
 
@@ -404,8 +450,7 @@ namespace Chess.Model
                         case Pieces.Queen:
                             if (numAllies == 0)
                             {
-                                king.IsBeingAttacked = true;
-                                king.Attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][leftCol].Type));
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][leftCol].Type));
                             }
                             else if (numAllies == 1)
                             {
@@ -417,81 +462,69 @@ namespace Chess.Model
 
                 i--;
             }
+
+            return attackers;
         }
 
-        private void CheckKnightsAttakcers(IPiece?[][] board, King king)
+        private static List<Attacker> GetKnightsAttakcers(IPiece?[][] board, IPiece piece)
         {
-            if (Board.IsPositionOnTheBoardLimits(board, king.Row + 2, king.Col - 1)
-                && Board.IsSquareEnemy(board, king.Row + 2, king.Col - 1, king.Color)
-                    && board[king.Row + 2][king.Col - 1].Type == Pieces.Knight)
+            if (Board.IsPositionOnTheBoardLimits(board, piece.Row + 2, piece.Col - 1)
+                && Board.IsSquareEnemy(board, piece.Row + 2, piece.Col - 1, piece.Color)
+                    && board[piece.Row + 2][piece.Col - 1].Type == Pieces.Knight)
             {
-                king.IsBeingAttacked = true;
-                king.Attackers.Add(new Attacker([[king.Row + 2, king.Col - 1]], Pieces.Knight));
-                return;
+                return[new Attacker([[piece.Row + 2, piece.Col - 1]], Pieces.Knight)];
             }
 
-            if (Board.IsPositionOnTheBoardLimits(board, king.Row + 2, king.Col + 1) 
-                && Board.IsSquareEnemy(board, king.Row + 2, king.Col + 1, king.Color)
-                    && board[king.Row + 2][king.Col + 1].Type == Pieces.Knight)
+            if (Board.IsPositionOnTheBoardLimits(board, piece.Row + 2, piece.Col + 1) 
+                && Board.IsSquareEnemy(board, piece.Row + 2, piece.Col + 1, piece.Color)
+                    && board[piece.Row + 2][piece.Col + 1].Type == Pieces.Knight)
             {
-                king.IsBeingAttacked = true;
-                king.Attackers.Add(new Attacker([[king.Row + 2, king.Col + 1]], Pieces.Knight));
-                return;
+                return[new Attacker([[piece.Row + 2, piece.Col + 1]], Pieces.Knight)];
             }
 
-            if (Board.IsPositionOnTheBoardLimits(board, king.Row - 2, king.Col + 1) 
-                && Board.IsSquareEnemy(board, king.Row - 2, king.Col + 1, king.Color)
-                    && board[king.Row - 2][king.Col + 1].Type == Pieces.Knight)
+            if (Board.IsPositionOnTheBoardLimits(board, piece.Row - 2, piece.Col + 1) 
+                && Board.IsSquareEnemy(board, piece.Row - 2, piece.Col + 1, piece.Color)
+                    && board[piece.Row - 2][piece.Col + 1].Type == Pieces.Knight)
             {
-                king.IsBeingAttacked = true;
-                king.Attackers.Add(new Attacker([[king.Row - 2, king.Col + 1]], Pieces.Knight));
-                return;
+                return[new Attacker([[piece.Row - 2, piece.Col + 1]], Pieces.Knight)];
             }
 
-            if (Board.IsPositionOnTheBoardLimits(board, king.Row - 2, king.Col - 1) 
-                && Board.IsSquareEnemy(board, king.Row - 2, king.Col - 1, king.Color)
-                    && board[king.Row - 2][king.Col - 1].Type == Pieces.Knight)
+            if (Board.IsPositionOnTheBoardLimits(board, piece.Row - 2, piece.Col - 1) 
+                && Board.IsSquareEnemy(board, piece.Row - 2, piece.Col - 1, piece.Color)
+                    && board[piece.Row - 2][piece.Col - 1].Type == Pieces.Knight)
             {
-                king.IsBeingAttacked = true;
-                king.Attackers.Add(new Attacker([[king.Row - 2, king.Col - 1]], Pieces.Knight));
-                return;
+                return[new Attacker([[piece.Row - 2, piece.Col - 1]], Pieces.Knight)];
             }
 
-            if (Board.IsPositionOnTheBoardLimits(board, king.Row + 1, king.Col + 2) 
-                && Board.IsSquareEnemy(board, king.Row + 1, king.Col + 2, king.Color)
-                    && board[king.Row + 1][king.Col + 2].Type == Pieces.Knight)
+            if (Board.IsPositionOnTheBoardLimits(board, piece.Row + 1, piece.Col + 2) 
+                && Board.IsSquareEnemy(board, piece.Row + 1, piece.Col + 2, piece.Color)
+                    && board[piece.Row + 1][piece.Col + 2].Type == Pieces.Knight)
                 {
-                king.IsBeingAttacked = true;
-                king.Attackers.Add(new Attacker([[king.Row + 1, king.Col + 2]], Pieces.Knight));
-                return;
+                return[new Attacker([[piece.Row + 1, piece.Col + 2]], Pieces.Knight)];
                                 }
 
-            if (Board.IsPositionOnTheBoardLimits(board, king.Row + 1, king.Col - 2) 
-                && Board.IsSquareEnemy(board, king.Row + 1, king.Col - 2, king.Color)
-                    && board[king.Row + 1][king.Col - 2].Type == Pieces.Knight)
+            if (Board.IsPositionOnTheBoardLimits(board, piece.Row + 1, piece.Col - 2) 
+                && Board.IsSquareEnemy(board, piece.Row + 1, piece.Col - 2, piece.Color)
+                    && board[piece.Row + 1][piece.Col - 2].Type == Pieces.Knight)
             {
-                king.IsBeingAttacked = true;
-                king.Attackers.Add(new Attacker([[king.Row + 1, king.Col - 2]], Pieces.Knight));
-                return;
+                return[new Attacker([[piece.Row + 1, piece.Col - 2]], Pieces.Knight)];
             }
 
-            if (Board.IsPositionOnTheBoardLimits(board, king.Row - 1, king.Col + 2) 
-                && Board.IsSquareEnemy(board, king.Row - 1, king.Col + 2, king.Color)
-                    && board[king.Row - 1][king.Col + 2].Type == Pieces.Knight)
+            if (Board.IsPositionOnTheBoardLimits(board, piece.Row - 1, piece.Col + 2) 
+                && Board.IsSquareEnemy(board, piece.Row - 1, piece.Col + 2, piece.Color)
+                    && board[piece.Row - 1][piece.Col + 2].Type == Pieces.Knight)
             {
-                king.IsBeingAttacked = true;
-                king.Attackers.Add(new Attacker([[king.Row - 1, king.Col + 2]], Pieces.Knight));
-                return;
+                return[new Attacker([[piece.Row - 1, piece.Col + 2]], Pieces.Knight)];
             }
 
-            if (Board.IsPositionOnTheBoardLimits(board, king.Row - 1, king.Col - 2) 
-                && Board.IsSquareEnemy(board, king.Row - 1, king.Col - 2, king.Color)
-                    && board[king.Row - 1][king.Col - 2].Type == Pieces.Knight)
+            if (Board.IsPositionOnTheBoardLimits(board, piece.Row - 1, piece.Col - 2) 
+                && Board.IsSquareEnemy(board, piece.Row - 1, piece.Col - 2, piece.Color)
+                    && board[piece.Row - 1][piece.Col - 2].Type == Pieces.Knight)
             {
-                king.IsBeingAttacked = true;
-                king.Attackers.Add(new Attacker([[king.Row - 1, king.Col - 2]], Pieces.Knight));
-                return;
+                return[new Attacker([[piece.Row - 1, piece.Col - 2]], Pieces.Knight)];
             }
+
+            return [];
         }
     }
 }

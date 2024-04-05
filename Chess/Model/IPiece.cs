@@ -14,7 +14,7 @@ namespace Chess.Model
 
         public List<int[]> GetAllMoves(IPiece?[][] board);
 
-        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<Attacker> attackers, int kingRow, int kingCol);
+        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<Attacker> attackers);
 
         public void MovePiece(int newRow, int newCol);
 

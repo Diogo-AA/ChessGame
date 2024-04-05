@@ -172,7 +172,7 @@ namespace Chess
 
             if (king.IsBeingAttacked)
             {
-                moves = game.PieceSelected.GetAllCheckBlocks(game.board, king.Attackers, king.Row, king.Col);
+                moves = game.PieceSelected.GetAllCheckBlocks(game.board, king.Attackers);
             }
             else
             {
