@@ -31,6 +31,7 @@ namespace Chess
                 {
                     var piece = game.board[i][j];
                     var border = new Border();
+                    border.Background = (i + j) % 2 == 0 ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Gray;
                     var image = new Image
                     {
                         Source = piece is null ? null : new BitmapImage(new Uri($"{IMAGE_PATH}\\{piece.Color}-{piece.Type}.png")),
