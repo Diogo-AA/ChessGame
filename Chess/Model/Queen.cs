@@ -131,5 +131,14 @@ namespace Chess.Model
             Row = newRow;
             Col = newCol;
         }
+        public override string ToString()
+        {
+            return $"{Color}-{Notation}-{Row}-{Col}";
+        }
+
+        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<King.Attacker> attackers, int kingRow, int kingCol)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

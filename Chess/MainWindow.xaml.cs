@@ -1,4 +1,5 @@
 ﻿using Chess.Model;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -56,6 +57,9 @@ namespace Chess
             var col = Grid.GetColumn(border);
             var piece = game.board[row][col];
 
+            if (game.IsGameOver())
+                return;
+
             if (piece is null || ((piece is not Move && !piece.IsBeingAttacked) && piece.Color != game.Turn))
                 return;
 
@@ -66,7 +70,7 @@ namespace Chess
                 return;
             }
 
-            if (piece is Move || piece.IsBeingAttacked)
+            if (piece is Move || (piece.IsBeingAttacked && piece.Type != Pieces.King))
             {
                 MovePiece(border, row, col);
                 RemoveMarksOfAllPossibleMoves();
@@ -105,7 +109,7 @@ namespace Chess
                             VerticalAlignment = VerticalAlignment.Center
                         };
                     }
-                    else
+                    else if (piece.IsBeingAttacked && piece.Type != Pieces.King)
                     {
                         piece.IsBeingAttacked = false;
                         border.Child = new Image
@@ -149,13 +153,33 @@ namespace Chess
             };
 
             Board.MovePiece(game.board, game.PieceSelected.Row, game.PieceSelected.Col, row, col);
+            game.CheckKings();
+
+            if (game.IsGameOver())
+            {
+                MessageBox.Show($"{game.PieceSelected.Color} Won!");
+                return;
+            }
+
             game.PieceSelected = null;
             game.Turn = game.Turn == Colors.White ? Colors.Black : Colors.White;
         }
 
         private void MarkAllPossibleMoves()
         {
-            foreach (int[] pos in game.PieceSelected.GetAllMoves(game.board))
+            King king = game.GetKing(game.Turn);
+            List<int[]> moves;
+
+            if (king.IsBeingAttacked)
+            {
+                moves = game.PieceSelected.GetAllCheckBlocks(game.board, king.Attackers, king.Row, king.Col);
+            }
+            else
+            {
+                moves = game.PieceSelected.GetAllMoves(game.board);
+            }
+
+            foreach (int[] pos in moves)
             {
                 var piece = game.board[pos[0]][pos[1]];
                 

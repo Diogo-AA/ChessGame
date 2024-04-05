@@ -1,4 +1,5 @@
 ﻿using static Chess.Model.IPiece;
+using static Chess.Model.King;
 
 namespace Chess.Model
 {
@@ -50,10 +51,20 @@ namespace Chess.Model
             return moves;
         }
 
+        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<Attacker> attackers, int kingRow, int kingCol)
+        {
+            return [];
+        }
+
         public void MovePiece(int newRow, int newCol)
         {
             Row = newRow;
             Col = newCol;
+        }
+
+        public override string ToString()
+        {
+            return $"{Color}-{Notation}-{Row}-{Col}";
         }
     }
 }

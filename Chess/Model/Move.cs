@@ -9,19 +9,10 @@ namespace Chess.Model
         public string Notation { get; set; } = "";
         public Colors Color { get; set; }
         public bool IsBeingAttacked { get; set; } = false;
-        public int Row { get; set;  }
+        public bool WatchingTheEnemyKing { get; set; }
+        public int Row { get; set; }
         public int Col { get; set; }
         public Pieces Type { get; set; } = Pieces.None;
-
-        public List<int[]> GetAllMoves(IPiece?[][] board)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void MovePiece(int row, int col)
-        {
-            throw new NotImplementedException();
-        }
 
         public Move(int row, int col)
         {
@@ -37,6 +28,31 @@ namespace Chess.Model
             Type = type ?? Pieces.None;
             Row = row;
             Col = col;
+        }
+
+        public override string ToString()
+        {
+            return $"{Color}-{Notation}-{Row}-{Col}";
+        }
+
+        public List<int[]> GetAllMoves(IPiece?[][] board)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void MovePiece(int row, int col)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CheckIsWatchingTheEnemyKing(int enemyKingRow, int enemyKingCol)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<King.Attacker> attackers, int kingRow, int kingCol)
+        {
+            throw new NotImplementedException();
         }
     }
 }

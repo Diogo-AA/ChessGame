@@ -1,4 +1,6 @@
-﻿namespace Chess.Model
+﻿using static Chess.Model.King;
+
+namespace Chess.Model
 {
     internal interface IPiece
     {
@@ -12,7 +14,11 @@
 
         public List<int[]> GetAllMoves(IPiece?[][] board);
 
+        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<Attacker> attackers, int kingRow, int kingCol);
+
         public void MovePiece(int newRow, int newCol);
+
+        public string ToString();
 
         public enum Pieces
         {

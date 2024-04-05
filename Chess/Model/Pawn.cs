@@ -53,5 +53,15 @@ namespace Chess.Model
             Col = newCol;
             FirstMove = false;
         }
+
+        public List<int[]> GetAllCheckBlocks(IPiece?[][] board, List<King.Attacker> attackers, int kingRow, int kingCol)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string ToString()
+        {
+            return $"{Color}-{Notation}-{Row}-{Col}";
+        }
     }
 }
