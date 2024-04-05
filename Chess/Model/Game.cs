@@ -145,7 +145,7 @@ namespace Chess.Model
             return IsSquareAttacked(boardCopy, king.Row, king.Col, piece.Color);
         }
 
-        private static List<Attacker> GetAttackersCol(IPiece?[][] board, IPiece piece)
+        private static List<Attacker> GetAttackersRow(IPiece?[][] board, IPiece piece)
         {
             var attackers = new List<Attacker>();
             var squaresToBeBlocked = new List<int[]>();
@@ -165,15 +165,14 @@ namespace Chess.Model
                 }
                 else if (Board.IsSquareEnemy(board, piece.Row, i, piece.Color))
                 {
+                    pieceFound = true;
+
                     switch (board[piece.Row][i].Type)
                     {
                         case Pieces.Rook:
                         case Pieces.Queen:
-                            pieceFound = true;
                             if (numAllies == 0)
-                            {
                                 attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[piece.Row][i].Type));
-                            }
                             else if (numAllies == 1)
                             {
                                 //piecesPinned.Add($"{piece.Row},{i}");
@@ -199,15 +198,14 @@ namespace Chess.Model
                 }
                 else if (Board.IsSquareEnemy(board, piece.Row, i, piece.Color))
                 {
+                    pieceFound = true;
+
                     switch (board[piece.Row][i].Type)
                     {
                         case Pieces.Rook:
                         case Pieces.Queen:
-                            pieceFound = true;
                             if (numAllies == 0)
-                            {
                                 attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[piece.Row][i].Type));
-                            }
                             else if (numAllies == 1)
                             {
                                 //piecesPinned.Add($"{piece.Row},{i}");
@@ -222,7 +220,7 @@ namespace Chess.Model
             return attackers;
         }
 
-        private static List<Attacker> GetAttackersRow(IPiece?[][] board, IPiece piece)
+        private static List<Attacker> GetAttackersCol(IPiece?[][] board, IPiece piece)
         {
             var attackers = new List<Attacker>();
             var squaresToBeBlocked = new List<int[]>();
@@ -242,15 +240,14 @@ namespace Chess.Model
                 }
                 else if (Board.IsSquareEnemy(board, i, piece.Col, piece.Color))
                 {
+                    pieceFound = true;
+
                     switch (board[i][piece.Col].Type)
                     {
                         case Pieces.Rook:
                         case Pieces.Queen:
-                            pieceFound = true;
                             if (numAllies == 0)
-                            {
                                 attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][piece.Col].Type));
-                            }
                             else if (numAllies == 1)
                             {
                                 //piecesPinned.Add($"{i},{piece.Col}");
@@ -276,15 +273,14 @@ namespace Chess.Model
                 }
                 else if (Board.IsSquareEnemy(board, i, piece.Col, piece.Color))
                 {
+                    pieceFound = true;
+
                     switch (board[i][piece.Col].Type)
                     {
                         case Pieces.Rook:
                         case Pieces.Queen:
-                            pieceFound = true;
                             if (numAllies == 0)
-                            {
                                 attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][piece.Col].Type));
-                            }
                             else if (numAllies == 1)
                             {
                                 //piecesPinned.Add($"{i},{piece.Col}");
@@ -329,13 +325,11 @@ namespace Chess.Model
                         case Pieces.Bishop:
                         case Pieces.Queen:
                             if (numAllies == 0)
-                            {
                                 attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][rightCol].Type));
-                            }
-                            else if (numAllies == 1)
-                            {
-                                //piecesPinned.Add($"{i},{col}");
-                            }
+                            break;
+                        case Pieces.Pawn:
+                            if (numAllies == 0 && i == piece.Row + 1)
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][rightCol].Type));
                             break;
                     }
                 }
@@ -369,13 +363,11 @@ namespace Chess.Model
                         case Pieces.Bishop:
                         case Pieces.Queen:
                             if (numAllies == 0)
-                            {
                                 attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][leftCol].Type));
-                            }
-                            else if (numAllies == 1)
-                            {
-                                //piecesPinned.Add($"{i},{col}");
-                            }
+                            break;
+                        case Pieces.Pawn:
+                            if (numAllies == 0 && i == piece.Row + 1)
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][leftCol].Type));
                             break;
                     }
                 }
@@ -409,13 +401,11 @@ namespace Chess.Model
                         case Pieces.Bishop:
                         case Pieces.Queen:
                             if (numAllies == 0)
-                            {
                                 attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][rightCol].Type));
-                            }
-                            else if (numAllies == 1)
-                            {
-                                //piecesPinned.Add($"{i},{col}");
-                            }
+                            break;
+                        case Pieces.Pawn:
+                            if (numAllies == 0 && i == piece.Row - 1)
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][rightCol].Type));
                             break;
                     }
                 }
@@ -449,13 +439,11 @@ namespace Chess.Model
                         case Pieces.Bishop:
                         case Pieces.Queen:
                             if (numAllies == 0)
-                            {
                                 attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][leftCol].Type));
-                            }
-                            else if (numAllies == 1)
-                            {
-                                //piecesPinned.Add($"{i},{col}");
-                            }
+                            break;
+                        case Pieces.Pawn:
+                            if (numAllies == 0 && i == piece.Row - 1)
+                                attackers.Add(new Attacker(squaresToBeBlocked.ToList(), board[i][leftCol].Type));
                             break;
                     }
                 }
