@@ -36,28 +36,44 @@ namespace Chess.Model
         {
             var moves = new List<int[]>();
 
-            if (Board.IsPositionOnTheBoardLimits(board, Row + 1, Col - 1) && !Board.IsSquareAlly(board, Row + 1, Col - 1, Color))
+            if (Board.IsPositionOnTheBoardLimits(board, Row + 1, Col - 1) 
+                && !Board.IsSquareAlly(board, Row + 1, Col - 1, Color) 
+                    && !Game.IsSquareAttacked(board, Row + 1, Col - 1, Color))
                 moves.Add([Row + 1, Col - 1]);
 
-            if (Board.IsPositionOnTheBoardLimits(board, Row + 1, Col) && !Board.IsSquareAlly(board, Row + 1, Col, Color))
+            if (Board.IsPositionOnTheBoardLimits(board, Row + 1, Col) 
+                && !Board.IsSquareAlly(board, Row + 1, Col, Color) 
+                    && !Game.IsSquareAttacked(board, Row + 1, Col, Color))
                 moves.Add([Row + 1, Col]);
 
-            if (Board.IsPositionOnTheBoardLimits(board, Row + 1, Col + 1) && !Board.IsSquareAlly(board, Row + 1, Col + 1, Color))
+            if (Board.IsPositionOnTheBoardLimits(board, Row + 1, Col + 1) 
+                && !Board.IsSquareAlly(board, Row + 1, Col + 1, Color) 
+                    && !Game.IsSquareAttacked(board, Row + 1, Col + 1, Color))
                 moves.Add([Row + 1, Col + 1]);
 
-            if (Board.IsPositionOnTheBoardLimits(board, Row, Col - 1) && !Board.IsSquareAlly(board, Row, Col - 1, Color))
+            if (Board.IsPositionOnTheBoardLimits(board, Row, Col - 1) 
+                && !Board.IsSquareAlly(board, Row, Col - 1, Color) 
+                    && !Game.IsSquareAttacked(board, Row, Col - 1, Color))
                 moves.Add([Row, Col - 1]);
 
-            if (Board.IsPositionOnTheBoardLimits(board, Row, Col + 1) && !Board.IsSquareAlly(board, Row, Col + 1, Color))
+            if (Board.IsPositionOnTheBoardLimits(board, Row, Col + 1) 
+                && !Board.IsSquareAlly(board, Row, Col + 1, Color) 
+                    && !Game.IsSquareAttacked(board, Row, Col + 1, Color))
                 moves.Add([Row, Col + 1]);
 
-            if (Board.IsPositionOnTheBoardLimits(board, Row - 1, Col - 1) && !Board.IsSquareAlly(board, Row - 1, Col - 1, Color))
+            if (Board.IsPositionOnTheBoardLimits(board, Row - 1, Col - 1) 
+                && !Board.IsSquareAlly(board, Row - 1, Col - 1, Color) 
+                    && !Game.IsSquareAttacked(board, Row - 1, Col - 1, Color))
                 moves.Add([Row - 1, Col - 1]);
 
-            if (Board.IsPositionOnTheBoardLimits(board, Row - 1, Col) && !Board.IsSquareAlly(board, Row - 1, Col, Color))
+            if (Board.IsPositionOnTheBoardLimits(board, Row - 1, Col) 
+                && !Board.IsSquareAlly(board, Row - 1, Col, Color) 
+                    && !Game.IsSquareAttacked(board, Row - 1, Col, Color))
                 moves.Add([Row - 1, Col]);
 
-            if (Board.IsPositionOnTheBoardLimits(board, Row - 1, Col + 1) && !Board.IsSquareAlly(board, Row - 1, Col + 1, Color))
+            if (Board.IsPositionOnTheBoardLimits(board, Row - 1, Col + 1) 
+                && !Board.IsSquareAlly(board, Row - 1, Col + 1, Color) 
+                    && !Game.IsSquareAttacked(board, Row - 1, Col + 1, Color))
                 moves.Add([Row - 1, Col + 1]);
 
             return moves;
