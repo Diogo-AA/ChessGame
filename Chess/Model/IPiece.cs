@@ -2,7 +2,7 @@
 
 namespace Chess.Model
 {
-    internal interface IPiece
+    public interface IPiece
     {
         public string Name { get; set; }
         public string Notation { get; set; }

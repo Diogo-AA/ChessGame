@@ -2,7 +2,7 @@
 
 namespace Chess.Model
 {
-    internal class King : IPiece
+    public class King : IPiece
     {
         public string Name { get; set; } = "King";
         public string Notation { get; set; } = "K";

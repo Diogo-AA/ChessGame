@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using static Chess.Model.IPiece;
+using static Chess.PromoteWindow;
 
 namespace Chess
 {
@@ -13,7 +14,7 @@ namespace Chess
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const string IMAGE_PATH = "C:\\Users\\Usuario\\source\\repos\\ChessGame\\Chess\\Resources\\Images";
+        public static readonly string IMAGE_PATH = "C:\\Users\\Usuario\\source\\repos\\ChessGame\\Chess\\Resources\\Images";
         private readonly Game game = new Game();
 
         public MainWindow()
@@ -30,8 +31,6 @@ namespace Chess
                 for (int j = 0; j < Board.COLS_LENGTH; j++)
                 {
                     var piece = game.board[i][j];
-                    var border = new Border();
-                    border.Background = (i + j) % 2 == 0 ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Gray;
                     var image = new Image
                     {
                         Source = piece is null ? null : new BitmapImage(new Uri($"{IMAGE_PATH}\\{piece.Color}-{piece.Type}.png")),
@@ -40,9 +39,13 @@ namespace Chess
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center
                     };
-
-                    border.Child = image;
+                    var border = new Border()
+                    {
+                        Background = (i + j) % 2 == 0 ? System.Windows.Media.Brushes.White : System.Windows.Media.Brushes.Gray,
+                        Child = image
+                    };
                     border.AddHandler(MouseLeftButtonDownEvent, new MouseButtonEventHandler(OnPieceClick));
+
 
                     Grid.SetRow(border, i);
                     Grid.SetColumn(border, j);
@@ -144,6 +147,37 @@ namespace Chess
                 VerticalAlignment = VerticalAlignment.Center
             };
 
+            Board.MovePiece(game.board, game.PieceSelected.Row, game.PieceSelected.Col, row, col);
+
+            if (game.PieceSelected.Type == Pieces.Pawn)
+            {
+                if ((game.PieceSelected.Color == Colors.White && row == 7) || (game.PieceSelected.Color == Colors.Black && row == 0))
+                {
+                    var promoteWindow = new PromoteWindow(game.PieceSelected.Color);
+                    promoteWindow.ShowDialog();
+
+                    switch (promoteWindow.PromotedType)
+                    {
+                        case Pieces.Queen:
+                            game.board[row][col] = new Queen(game.PieceSelected.Color, row, col);
+                            game.PieceSelected = game.board[row][col];
+                            break;
+                        case Pieces.Rook:
+                            game.board[row][col] = new Rook(game.PieceSelected.Color, row, col);
+                            game.PieceSelected = game.board[row][col];
+                            break;
+                        case Pieces.Knight:
+                            game.board[row][col] = new Knight(game.PieceSelected.Color, row, col);
+                            game.PieceSelected = game.board[row][col];
+                            break;
+                        case Pieces.Bishop:
+                            game.board[row][col] = new Bishop(game.PieceSelected.Color, row, col);
+                            game.PieceSelected = game.board[row][col];
+                            break;
+                    }
+                }
+            }
+
             newPiecePositionBorder.Child = new Image
             {
                 Source = new BitmapImage(new Uri($"{IMAGE_PATH}\\{game.PieceSelected.Color}-{game.PieceSelected.Type}.png")),
@@ -153,7 +187,6 @@ namespace Chess
                 VerticalAlignment = VerticalAlignment.Center
             };
 
-            Board.MovePiece(game.board, game.PieceSelected.Row, game.PieceSelected.Col, row, col);
             game.CheckKings();
 
             if (game.IsGameOver())
